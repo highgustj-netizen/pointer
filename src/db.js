@@ -152,8 +152,8 @@ const PhotoDB = {
     if (all.length === 0) return null;
 
     const aspect = window.innerWidth / window.innerHeight;
-    // 원본 Pointer Pointer 기준 ~3% 화면 반경 (종횡비 보정 포함)
-    const MAX_D_SQ = (0.03 * aspect) ** 2 + 0.03 ** 2;
+    // ~8% 화면 반경 (사진 수 적을 때 generous 매칭)
+    const MAX_D_SQ = (0.08 * aspect) ** 2 + 0.08 ** 2;
 
     let best = null, bestD = Infinity;
     for (const p of all) {

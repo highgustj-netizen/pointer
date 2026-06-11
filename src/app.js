@@ -3,7 +3,6 @@ const waitingScreen  = document.getElementById('waiting-screen');
 const photoScreen    = document.getElementById('photo-screen');
 const pointerPhoto   = document.getElementById('pointer-photo');
 const fingerMarker   = document.getElementById('finger-marker');
-const coordsLabel    = document.getElementById('coords-label');
 const adminPanel     = document.getElementById('admin-panel');
 const adminBtn       = document.getElementById('admin-btn');
 const tagPhoto       = document.getElementById('tag-photo');
@@ -13,7 +12,6 @@ const saveTagBtn     = document.getElementById('save-tag');
 const skipTagBtn     = document.getElementById('skip-tag');
 const dbPreview      = document.getElementById('db-preview');
 const manageBtn      = document.getElementById('manage-btn');
-const pendingBadge   = document.getElementById('pending-badge');
 const approveSection = document.getElementById('approve-section');
 const approvePreview = document.getElementById('approve-preview');
 const deleteSection  = document.getElementById('delete-section');
@@ -203,8 +201,6 @@ async function showPhoto() {
       pointerPhoto.style.objectFit = 'fill';
     }
 
-    coordsLabel.textContent =
-      `x: ${(cursorX * 100).toFixed(1)}%  y: ${(cursorY * 100).toFixed(1)}%`;
   };
   pointerPhoto.src = photo.src;
   if (pointerPhoto.complete && pointerPhoto.naturalWidth > 0) pointerPhoto.onload();
@@ -426,16 +422,6 @@ async function openAdmin() {
   clearTimeout(stillTimer);
   stopCountdown();
   uploadSection.classList.remove('hidden');
-  // 대기 중 배지 갱신
-  try {
-    const pending = await PhotoDB.getPending();
-    if (pending.length > 0) {
-      pendingBadge.textContent = pending.length;
-      pendingBadge.classList.remove('hidden');
-    } else {
-      pendingBadge.classList.add('hidden');
-    }
-  } catch { pendingBadge.classList.add('hidden'); }
 }
 
 adminBtn.addEventListener('click', openAdmin);

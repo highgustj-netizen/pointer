@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>포인터 분포도</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" />
+  <style>
+    body {
+      cursor: default;
+      overflow-y: auto;
+      overflow-x: hidden;
+      height: auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 24px 80px;
+    }
+
+    #back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.60);
+      padding: 8px 18px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      z-index: 50;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+      transition: color 0.25s, border-color 0.25s, background 0.25s;
+    }
+    #back-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(255,77,28,0.04);
+    }
+
+    .header-line1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.75rem;
+      color: #555;
+      letter-spacing: 0.06em;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .header-line2 {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: #333;
+      letter-spacing: 0.15em;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .dot-hint {
+      margin-top: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: #444;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+    .dot-hint .dot-mark { color: #ff4d1c; }
+
+    #photo-count {
+      margin-top: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: #333;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    #last-updated {
+      position: fixed;
+      bottom: 16px;
+      right: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: #333;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .canvas-wrap {
+      width: 90%;
+      max-width: 900px;
+    }
+
+    .canvas-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      overflow: hidden;
+    }
+
+    #dist-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    #spinner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0a;
+      z-index: 10;
+    }
+    #spinner.hidden { display: none; }
+
+    .spin-ring {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(255,255,255,0.06);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.72s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #tooltip {
+      position: fixed;
+      display: none;
+      pointer-events: none;
+      z-index: 200;
+      background: rgba(8,8,8,0.94);
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      overflow: hidden;
+      transform: translate(14px, -50%);
+    }
+    #tooltip img {
+      display: block;
+      width: 88px;
+      height: 58px;
+      object-fit: cover;
+    }
+    #tt-date {
+      padding: 5px 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 9px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" id="back-btn">← 돌아가기</a>
+
+  <p class="header-line1">실제 화면 ½ 크기</p>
+  <p class="header-line2">드래그로 이동 &nbsp;·&nbsp; 모서리로 크기 조절 &nbsp;·&nbsp; 클릭으로 포인트 추가</p>
+
+  <div class="canvas-wrap">
+    <div class="canvas-box">
+      <canvas id="dist-canvas"></canvas>
+      <div id="spinner"><div class="spin-ring"></div></div>
+    </div>
+    <p class="dot-hint"><span class="dot-mark">●</span>&nbsp; 포인터가 찍힌 위치</p>
+    <p id="photo-count"></p>
+  </div>
+
+  <div id="last-updated"></div>
+
+  <div id="tooltip">
+    <img id="tt-img" src="" alt="" />
+    <div id="tt-date"></div>
+  </div>
+
+  <script src="src/config.js"></script>
+  <script>
+    const canvas       = document.getElementById('dist-canvas');
+    const ctx          = canvas.getContext('2d');
+    const spinner      = document.getElementById('spinner');
+    const tooltip      = document.getElementById('tooltip');
+    const ttImg        = document.getElementById('tt-img');
+    const ttDate       = document.getElementById('tt-date');
+    const countEl      = document.getElementById('photo-count');
+    const lastUpdEl    = document.getElementById('last-updated');
+
+    const DOT_R        = 4;
+    const DOT_R_HOVER  = 6;
+    const HIT_PX       = 18;
+    const POLL_MS      = 5000;
+
+    let _photos        = [];
+    let hoveredIdx     = -1;
+    let _ready         = false;
+    let pollTimer      = null;
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < _photos.length; i++) {
+        const p   = _photos[i];
+        const cx  = p.x * W, cy = p.y * H;
+        const hot = i === hoveredIdx;
+        ctx.beginPath();
+        ctx.arc(cx, cy, hot ? DOT_R_HOVER : DOT_R, 0, Math.PI * 2);
+        ctx.fillStyle = hot ? 'rgba(255,77,28,1)' : 'rgba(255,77,28,0.70)';
+        ctx.fill();
+      }
+    }
+
+    function syncSize() {
+      const box     = canvas.parentElement;
+      canvas.width  = box.clientWidth;
+      canvas.height = box.clientHeight;
+      draw();
+    }
+
+    function updateMeta() {
+      countEl.textContent = `총 ${_photos.length}장`;
+      const t = new Date();
+      const hh = String(t.getHours()).padStart(2, '0');
+      const mm = String(t.getMinutes()).padStart(2, '0');
+      const ss = String(t.getSeconds()).padStart(2, '0');
+      lastUpdEl.textContent = `마지막 갱신: ${hh}:${mm}:${ss}`;
+    }
+
+    async function loadAndRender() {
+      try {
+        const res = await fetch(
+          `${CONFIG.supabaseUrl}/rest/v1/photos?select=finger_x,finger_y,src,created_at&status=eq.approved&order=created_at.asc`,
+          { headers: { 'apikey': CONFIG.supabaseKey, 'Authorization': `Bearer ${CONFIG.supabaseKey}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+
+        _photos = rows.map(r => ({
+          x:    r.finger_x,
+          y:    r.finger_y,
+          src:  r.src,
+          date: new Date(r.created_at).toLocaleDateString('ko-KR'),
+        }));
+
+        if (!_ready) {
+          syncSize();
+          spinner.classList.add('hidden');
+          _ready = true;
+        } else {
+          hoveredIdx = -1;
+          draw();
+        }
+
+        updateMeta();
+      } catch (e) {
+        console.error(e);
+        if (!_ready) spinner.classList.add('hidden');
+      }
+    }
+
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(loadAndRender, POLL_MS);
+    }
+
+    function stopPolling() {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect  = canvas.getBoundingClientRect();
+      const sx    = canvas.width  / rect.width;
+      const sy    = canvas.height / rect.height;
+      const mx    = (e.clientX - rect.left) * sx;
+      const my    = (e.clientY - rect.top)  * sy;
+
+      let best = -1, bestD = Infinity;
+      for (let i = 0; i < _photos.length; i++) {
+        const dx = _photos[i].x * canvas.width  - mx;
+        const dy = _photos[i].y * canvas.height - my;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < HIT_PX && d < bestD) { best = i; bestD = d; }
+      }
+
+      if (best !== hoveredIdx) { hoveredIdx = best; draw(); }
+
+      if (best >= 0) {
+        ttImg.src             = _photos[best].src;
+        ttDate.textContent    = _photos[best].date;
+        tooltip.style.display = 'block';
+        tooltip.style.left    = e.clientX + 'px';
+        tooltip.style.top     = e.clientY + 'px';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      hoveredIdx = -1;
+      draw();
+      tooltip.style.display = 'none';
+    });
+
+    window.addEventListener('resize', syncSize);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        loadAndRender();
+        startPolling();
+      }
+    });
+
+    window.addEventListener('beforeunload', stopPolling);
+
+    loadAndRender();
+    startPolling();
+  </script>
+</body>
+</html>

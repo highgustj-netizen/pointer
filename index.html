@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pointer Pointer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 대기 화면 -->
+  <div id="waiting-screen">
+    <div class="waiting-content">
+      <p class="instruction">커서를 잠시 멈춰보세요</p>
+      <div class="cursor-dot"></div>
+      <p class="sub">당신이 여기 왔었다는 걸, 커서가 알려줄 거예요</p>
+      <p id="loading-hint" class="loading-hint">커서를 움직이지 마세요</p>
+      <div id="loading-bar"><div id="loading-bar-fill"></div></div>
+      <p id="no-photo-hint" class="hidden">해당 위치에 맞는 이미지가 없습니다</p>
+    </div>
+  </div>
+
+  <!-- 사진 표시 화면 -->
+  <div id="photo-screen" class="hidden">
+    <img id="pointer-photo" src="" alt="pointer" />
+    <div id="coords-label"></div>
+  </div>
+  <div id="finger-marker"></div>
+
+  <!-- 업로드 패널 -->
+  <div id="admin-panel" class="hidden">
+
+    <div class="panel-header">
+      <button id="back-btn">← 뒤로가기</button>
+      <button id="manage-btn">관리자 <span id="pending-badge" class="pending-badge hidden"></span></button>
+    </div>
+
+    <!-- 업로드 섹션 -->
+    <div id="upload-section">
+      <h2>사진 업로드</h2>
+      <p class="panel-sub">손가락이 찍힌 사진을 올리고 손가락 끝을 태그하세요</p>
+      <label id="drop-zone" for="photo-upload">
+        <span class="drop-icon">↑</span>
+        <span class="drop-text">파일을 드래그하거나 클릭해서 선택</span>
+        <span class="drop-sub">JPG · PNG · WEBP · 여러 장 가능</span>
+        <input type="file" id="photo-upload" accept="image/*" multiple />
+      </label>
+    </div>
+
+
+    <!-- 승인 섹션 -->
+    <div id="approve-section" class="hidden">
+      <p class="delete-hint" id="approve-hint">대기 중인 사진 · ✓ 승인 / ✗ 거절</p>
+      <div id="approve-preview"></div>
+    </div>
+
+    <!-- 삭제 섹션 -->
+    <div id="delete-section" class="hidden">
+      <p class="delete-hint">전체 사진 표시 · 클릭하면 삭제</p>
+      <div id="db-preview"></div>
+    </div>
+
+  </div>
+
+  <button id="admin-btn" title="사진 업로드">+ 사진 업로드</button>
+
+
+  <!-- 전체화면 태깅 오버레이 -->
+  <div id="tag-overlay" class="hidden">
+    <div id="monitor-frame"></div>
+    <div id="tag-topbar">
+      <span id="tag-counter"></span>
+      <div class="tag-actions">
+        <button id="save-tag">저장</button>
+        <button id="skip-tag">건너뛰기</button>
+        <button id="close-tag">취소</button>
+      </div>
+    </div>
+    <div id="tag-photo-wrap">
+      <img id="tag-photo" src="" alt="" draggable="false" />
+      <div id="tag-crosshair"></div>
+      <div class="rh" data-d="n"></div>
+      <div class="rh" data-d="ne"></div>
+      <div class="rh" data-d="e"></div>
+      <div class="rh" data-d="se"></div>
+      <div class="rh" data-d="s"></div>
+      <div class="rh" data-d="sw"></div>
+      <div class="rh" data-d="w"></div>
+      <div class="rh" data-d="nw"></div>
+    </div>
+    <span class="tag-instr">드래그로 이동 &nbsp;·&nbsp; 모서리로 크기 조절 &nbsp;·&nbsp; 클릭으로 포인트 추가</span>
+    <canvas id="density-canvas"></canvas>
+    <div id="tag-dot-hint"><span class="dot-mark">●</span>&nbsp; 포인터가 찍힌 위치</div>
+  </div>
+
+  <!-- 미리보기 오버레이 -->
+  <div id="preview-overlay" class="hidden">
+    <div id="preview-bar">
+      <span id="preview-count"></span>
+      <div class="preview-nav">
+        <button id="preview-prev">←</button>
+        <button id="preview-next">→</button>
+      </div>
+      <button id="preview-close">완료</button>
+    </div>
+    <div id="preview-viewport">
+      <img id="preview-img" src="" alt="" />
+      <div id="preview-cursor"></div>
+    </div>
+  </div>
+
+  <script src="src/config.js"></script>
+  <script src="src/db.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>

@@ -352,7 +352,7 @@ body.admin-open::after { display: none; }
 .tag-instr {
   position: absolute;
   left: 50%;
-  top: calc(25vh - 8px);
+  top: calc(50% - 25vw * 9 / 16 - 8px);
   transform: translate(-50%, -100%);
   font-family: 'Nunito', sans-serif;
   font-size: 0.65rem;
@@ -366,7 +366,7 @@ body.admin-open::after { display: none; }
 
 #tag-dot-hint {
   position: absolute;
-  bottom: calc(25vh - 32px);
+  bottom: calc(50% - 25vw * 9 / 16 - 32px);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Nunito', sans-serif;
@@ -411,9 +411,10 @@ body.admin-open::after { display: none; }
 #monitor-frame {
   position: absolute;
   left: 25vw;
-  top: 25vh;
+  top: 50%;
+  transform: translateY(-50%);
   width: 50vw;
-  height: 50vh;
+  height: calc(50vw * 9 / 16);
   border: 1px solid rgba(255,255,255,0.5);
   pointer-events: none;
   z-index: 5;  /* 사진 wrap(z-index:3)보다 위 — 테두리가 항상 보임 */
@@ -434,9 +435,10 @@ body.admin-open::after { display: none; }
 #density-canvas {
   position: absolute;
   left: 25vw;
-  top: 25vh;
+  top: 50%;
+  transform: translateY(-50%);
   width: 50vw;
-  height: 50vh;
+  height: calc(50vw * 9 / 16);
   pointer-events: none;
   z-index: 6;
 }

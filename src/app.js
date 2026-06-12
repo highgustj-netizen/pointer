@@ -82,7 +82,8 @@ function _hexRgb(hex) {
 }
 
 async function renderDensityMap(extraPhotos = []) {
-  const mW = window.innerWidth / 2, mH = window.innerHeight / 2;
+  const mW = window.innerWidth / 2;
+  const mH = mW * 9 / 16;
   densityCanvas.width  = mW;
   densityCanvas.height = mH;
   const ctx = densityCanvas.getContext('2d');
@@ -130,7 +131,7 @@ async function renderDensityMap(extraPhotos = []) {
 
   // 점 그리기
   for (const cl of clusters) {
-    const cx = cl.x * mW, cy = cl.y * mH;
+    const cx = cl.x * mW, cy = cl.y * mW;
     const { r, hex } = _densityStyle(cl.n);
     const [R, G, B]  = _hexRgb(hex);
 
@@ -183,9 +184,9 @@ async function showPhoto() {
     if (photo.displayX != null) {
       pointerPhoto.style.position  = 'fixed';
       pointerPhoto.style.left      = (photo.displayX * vw) + 'px';
-      pointerPhoto.style.top       = (photo.displayY * vh) + 'px';
+      pointerPhoto.style.top       = (photo.displayY * vw) + 'px';
       pointerPhoto.style.width     = (photo.displayW * vw) + 'px';
-      pointerPhoto.style.height    = (photo.displayH * vh) + 'px';
+      pointerPhoto.style.height    = (photo.displayH * vw) + 'px';
       pointerPhoto.style.objectFit = 'fill';
     } else {
       // 구버전 (display 정보 없음): cover 방식
@@ -230,7 +231,7 @@ document.addEventListener('mousemove', (e) => {
   const dx = e.clientX - lastPxX;
   const dy = e.clientY - lastPxY;
   cursorX = e.clientX / window.innerWidth;
-  cursorY = e.clientY / window.innerHeight;
+  cursorY = e.clientY / window.innerWidth;
   if (Math.abs(dx) < MOVE_THRESH && Math.abs(dy) < MOVE_THRESH) return;
   lastPxX = e.clientX; lastPxY = e.clientY;
   const uiOpen = !adminPanel.classList.contains('hidden') || !tagOverlay.classList.contains('hidden');
@@ -300,8 +301,10 @@ let tagDragStartWrap = {};
 let tagDidDrag     = false;
 
 function initPhotoWrap() {
-  const mX = window.innerWidth / 4, mY = window.innerHeight / 4;
-  const mW = window.innerWidth / 2, mH = window.innerHeight / 2;
+  const mX = window.innerWidth / 4;
+  const mW = window.innerWidth / 2;
+  const mH = mW * 9 / 16;
+  const mY = (window.innerHeight - mH) / 2;
   const aspect = tagPhoto.naturalWidth / tagPhoto.naturalHeight;
   const m = Math.min(mW, mH) * 0.06;
   let w = mW - m * 2, h = w / aspect;
@@ -320,8 +323,10 @@ function applyWrapStyle() {
   tagPhotoWrap.style.width  = wrapW + 'px';
   tagPhotoWrap.style.height = wrapH + 'px';
 
-  const mX = window.innerWidth / 4,  mY = window.innerHeight / 4;
-  const mW = window.innerWidth / 2,  mH = window.innerHeight / 2;
+  const mX = window.innerWidth / 4;
+  const mW = window.innerWidth / 2;
+  const mH = mW * 9 / 16;
+  const mY = (window.innerHeight - mH) / 2;
   const t = Math.max(0, mY - wrapY);
   const r = Math.max(0, (wrapX + wrapW) - (mX + mW));
   const b = Math.max(0, (wrapY + wrapH) - (mY + mH));
@@ -372,8 +377,10 @@ window.addEventListener('mouseup', () => {
 
 tagPhotoWrap.addEventListener('click', (e) => {
   if (tagDidDrag || e.target.classList.contains('rh')) return;
-  const mX = window.innerWidth / 4,  mY = window.innerHeight / 4;
-  const mW = window.innerWidth / 2,  mH = window.innerHeight / 2;
+  const mX = window.innerWidth / 4;
+  const mW = window.innerWidth / 2;
+  const mH = mW * 9 / 16;
+  const mY = (window.innerHeight - mH) / 2;
   if (e.clientX < mX || e.clientX > mX + mW || e.clientY < mY || e.clientY > mY + mH) return;
   fingerVX = e.clientX; fingerVY = e.clientY;
   tagCrosshair.style.left = (fingerVX - wrapX) + 'px';
@@ -381,7 +388,7 @@ tagPhotoWrap.addEventListener('click', (e) => {
   tagCrosshair.style.display = 'block';
   currentTagPoint = {
     x: (fingerVX - mX) / mW,
-    y: (fingerVY - mY) / mH,
+    y: (fingerVY - mY) / mW,
     // 이미지 내 상대 좌표 (Supabase 저장용)
     imgX: Math.max(0, Math.min(1, (fingerVX - wrapX) / wrapW)),
     imgY: Math.max(0, Math.min(1, (fingerVY - wrapY) / wrapH)),
@@ -616,12 +623,14 @@ saveTagBtn.addEventListener('click', async () => {
   try {
     const src = await pendingPhotos[currentTagIdx].urlPromise;
 
-    const mX = window.innerWidth / 4, mY = window.innerHeight / 4;
-    const mW = window.innerWidth / 2, mH = window.innerHeight / 2;
+    const mX = window.innerWidth / 4;
+    const mW = window.innerWidth / 2;
+    const mH = mW * 9 / 16;
+    const mY = (window.innerHeight - mH) / 2;
     const displayX = (wrapX - mX) / mW;
-    const displayY = (wrapY - mY) / mH;
+    const displayY = (wrapY - mY) / mW;
     const displayW = wrapW / mW;
-    const displayH = wrapH / mH;
+    const displayH = wrapH / mW;
 
     await PhotoDB.add({
       src,
@@ -720,9 +729,9 @@ function renderPreview() {
     if (p.displayX !== undefined) {
       // 태깅 당시 배치한 위치·크기 그대로 표시
       ox = p.displayX * vw;
-      oy = p.displayY * vh;
+      oy = p.displayY * vw;
       renderW = p.displayW * vw;
-      renderH = p.displayH * vh;
+      renderH = p.displayH * vw;
       previewImg.style.position  = 'absolute';
       previewImg.style.left      = ox + 'px';
       previewImg.style.top       = oy + 'px';

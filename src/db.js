@@ -151,22 +151,20 @@ const PhotoDB = {
     const all = await this.getAll();
     if (all.length === 0) return null;
 
-    const aspect = window.innerWidth / window.innerHeight;
-    // ~8% 화면 반경 (사진 수 적을 때 generous 매칭)
-    const MAX_D_SQ = (0.08 * aspect) ** 2 + 0.08 ** 2;
+    // 모든 좌표가 vw 기준 (aspect-ratio 독립적) — 8% vw 반경
+    const MAX_D_SQ = 0.08 * 0.08;
 
     let best = null, bestD = Infinity;
     for (const p of all) {
       let fx, fy;
       if (p.displayX != null) {
-        // 화면에 표시되는 손가락 위치 = displayX + fingerX * displayW (전체 화면 0~1)
         fx = p.displayX + p.fingerX * p.displayW;
         fy = p.displayY + p.fingerY * p.displayH;
       } else {
         fx = p.fingerX;
         fy = p.fingerY;
       }
-      const dx = (fx - cursorX) * aspect;
+      const dx = fx - cursorX;
       const dy = fy - cursorY;
       const d = dx * dx + dy * dy;
       if (d < bestD) { bestD = d; best = p; }
